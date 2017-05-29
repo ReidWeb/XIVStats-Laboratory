@@ -1,0 +1,24 @@
+{
+  "name": "xivstats-js-eval",
+  "version": "0.1.0",
+  "description": "",
+  "main": "gatherer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReidWeb/XIVStats-Laboratory.git"
+  },
+  "author": "Peter Reid <peter@reidweb.com>",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/ReidWeb/XIVStats-Laboratory/issues"
+  },
+  "homepage": "https://github.com/ReidWeb/XIVStats-Laboratory#readme",
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "cheerio": "^1.0.0-rc.1",
+    "limiter": "^1.1.0"
+  }
+}
