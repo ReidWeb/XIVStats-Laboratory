@@ -18,7 +18,7 @@ const START_ID = 1;
 const END_ID = 100;
 const LODESTONE_HOST = 'eu.finalfantasyxiv.com';
 
-let limiter = new RateLimiter(1, 'second');
+let limiter = new RateLimiter(50, 'second');
 
 /**
  * Create an array of IDs beginning at the specified startId and ending at the the specified endId.
@@ -27,7 +27,7 @@ let limiter = new RateLimiter(1, 'second');
  * @param {int} endId - ID to end at
  * @returns {Promise} the completed array of integers
  */
-function convertRangeToArray(startId, endId) {
+function convertRangeToArray (startId, endId) {
   var indexes = [];
 
   return new Promise(function (resolve) {
@@ -47,7 +47,7 @@ function convertRangeToArray(startId, endId) {
  * @param {int} endId ID - to end with.
  * @returns {Promise} the character objects from the ID range specified
  */
-function getCharacterRange(startId, endId) {
+function getCharacterRange (startId, endId) {
   return new Promise(function (resolve) {
     convertRangeToArray(startId, endId).then(function (ids) {
       getCharacterArray(ids).then(function (characters) {
@@ -57,7 +57,7 @@ function getCharacterRange(startId, endId) {
   });
 }
 
-function getCharacter(id) {
+function getCharacter (id) {
   var setItems = [];
   var totalILvl = 0;
   var pieceCount = 0;
@@ -70,64 +70,67 @@ function getCharacter(id) {
     getPage(path).then(function (results) {
       var character = {};
       var $ = cheerio.load(results.body);
-      if ($("title").text().split("|")[0].trim() === "FINAL FANTASY XIV, The Lodestone") {
+
+      character.id = id.toString();
+      character.name = $("title").text().split("|")[0].trim();
+      resolve(character);
+    }).catch(function (e) {
         errObj = {};
         errObj.id = id.toString();
         errObj.error = true;
-        errObj.errCode = "404";
+        errObj.errCode = e;
         errObj.errMessage = "Character with ID " + id + " not found";
         resolve(errObj);
-      } else {
-        character.id = id.toString();
-        character.name = $("title").text().split("|")[0].trim();
-        resolve(character);
-      }
     });
   });
 }
 
-function getCharacterArray(ids) {
+function getCharacterArray (ids) {
 
   var characters = [];
   var fetchedIndexes = [];
 
   return new Promise(function (resolve) {
-    // limiter.removeTokens(1, function () {
-      ids.forEach(function (index) {
+    limiter.removeTokens(1, function () {
+    ids.forEach(function (index) {
 
-        getCharacter(index).then(function (character) {
-          fetchedIndexes.push(index);
-          characters.push(character);
-          if (fetchedIndexes.length === ids.length) {
-            resolve(characters);
-          }
-        });
+      getCharacter(index).then(function (character) {
+        fetchedIndexes.push(index);
+        characters.push(character);
+        if (fetchedIndexes.length === ids.length) {
+          resolve(characters);
+        }
       });
-    // }); //END LIMITER
+    });
+    }); //END LIMITER
   });
 }
 
-function getPage(path) {
-  return new Promise(function (resolve) {
+function getPage (path) {
+  return new Promise(function (resolve, reject) {
     http.get({
       host: LODESTONE_HOST,
       path: path
     }, function (response) {
       var body = '';
-      response.on('data', function (d) {
-        body += d;
-      });
-      response.on('end', function () {
-        var objOut = {};
-        objOut.statusCode = "200";
-        objOut.body = body;
-        resolve(objOut);
-      });
+      if (response.statusCode === 200) {
+        response.on('data', function (d) {
+          body += d;
+        });
+        response.on('end', function () {
+          var objOut = {};
+          objOut.statusCode = "200";
+          objOut.body = body;
+          resolve(objOut);
+        });
+      } else {
+        reject(response.statusCode);
+      }
     }).on('error', function (err) {
       console.log('problem with request: ${e.message}');
     });
   });
 }
-getCharacterRange(START_ID, END_ID).then( () => {
+getCharacterRange(START_ID, END_ID).then((results) => {
   console.log("done");
 });
