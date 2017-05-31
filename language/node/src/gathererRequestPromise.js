@@ -11,7 +11,7 @@
  */
 'use strict';
 let cheerio = require('cheerio');
-let request = require('request');
+let rp = require('request-promise');
 let Promise = require('bluebird');
 let RateLimiter = require('limiter').RateLimiter;
 const START_ID = 1;
@@ -108,19 +108,24 @@ function getCharacterArray (ids) {
 
 function getPage (path) {
   let url = 'http://' + LODESTONE_HOST + path;
+
+  let options = {
+    method: 'GET',
+    uri: url,
+    resolveWithFullResponse: true
+  };
   return new Promise(function (resolve, reject) {
-    request(url, function (error, response, body) {
-      if (error) {
-        reject(error);
-      } else {
+    rp(options)
+      .then(function (response) {
         if (response.statusCode === 200) {
-          resolve(body);
+          resolve(response.body);
         } else {
           reject(response.statusCode);
         }
-
-      }
-    });
+      })
+      .catch(function (error) {
+        reject(error);
+      });
   });
 }
 getCharacterRange(START_ID, END_ID).then((results) => {
