@@ -17,7 +17,7 @@ let RateLimiter = require('limiter').RateLimiter;
 const START_ID = 1;
 const END_ID = 100;
 const LODESTONE_HOST = 'eu.finalfantasyxiv.com';
-
+let fs = require('fs');
 let limiter = new RateLimiter(50, 'second');
 
 /**
@@ -73,6 +73,11 @@ function getCharacter (id) {
 
       character.id = id.toString();
       character.name = $("title").text().split("|")[0].trim();
+      //TEMP: File write code
+      // let pageName = '/Users/peter/Source/Personal/XIVStats-Laboratory/testPages/' + id + '.html';
+      // fs.writeFile(pageName, body, function (err, data) {
+      //   if (err) return console.log(err);
+      // });
       resolve(character);
     }).catch(function (e) {
       errObj = {};
@@ -80,7 +85,14 @@ function getCharacter (id) {
       errObj.error = true;
       errObj.errCode = e;
       errObj.errMessage = "Character with ID " + id + " not found";
-      resolve(errObj);
+      if (e === 429) {
+        console.log("Encountered 429 retrying");
+        getCharacter(id).then(function (res) {
+          resolve(res);
+        });
+      } else {
+        resolve(errObj);
+      }
     });
   });
 }

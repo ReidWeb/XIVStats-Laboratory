@@ -80,7 +80,14 @@ function getCharacter (id) {
       errObj.error = true;
       errObj.errCode = e;
       errObj.errMessage = "Character with ID " + id + " not found";
-      resolve(errObj);
+      if (e === 429) {
+        console.log("Encountered 429 retrying");
+        getCharacter(id).then(function (res) {
+          resolve(res);
+        });
+      } else {
+        resolve(errObj);
+      }
     });
   });
 }

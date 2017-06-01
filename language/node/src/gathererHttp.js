@@ -75,12 +75,19 @@ function getCharacter (id) {
       character.name = $("title").text().split("|")[0].trim();
       resolve(character);
     }).catch(function (e) {
-        errObj = {};
-        errObj.id = id.toString();
-        errObj.error = true;
-        errObj.errCode = e;
-        errObj.errMessage = "Character with ID " + id + " not found";
+      errObj = {};
+      errObj.id = id.toString();
+      errObj.error = true;
+      errObj.errCode = e;
+      errObj.errMessage = "Character with ID " + id + " not found";
+      if (e === 429) {
+        console.log("Encountered 429 retrying");
+        getCharacter(id).then(function (res) {
+          resolve(res);
+        });
+      } else {
         resolve(errObj);
+      }
     });
   });
 }
@@ -92,16 +99,16 @@ function getCharacterArray (ids) {
 
   return new Promise(function (resolve) {
     limiter.removeTokens(1, function () {
-    ids.forEach(function (index) {
+      ids.forEach(function (index) {
 
-      getCharacter(index).then(function (character) {
-        fetchedIndexes.push(index);
-        characters.push(character);
-        if (fetchedIndexes.length === ids.length) {
-          resolve(characters);
-        }
+        getCharacter(index).then(function (character) {
+          fetchedIndexes.push(index);
+          characters.push(character);
+          if (fetchedIndexes.length === ids.length) {
+            resolve(characters);
+          }
+        });
       });
-    });
     }); //END LIMITER
   });
 }
