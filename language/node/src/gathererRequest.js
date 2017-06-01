@@ -75,7 +75,8 @@ function getCharacter (id) {
       character.name = $("title").text().split("|")[0].trim();
       //TEMP: File write code
       // let pageName = '/Users/peter/Source/Personal/XIVStats-Laboratory/testPages/' + id + '.html';
-      // fs.writeFile(pageName, body, function (err, data) {
+      // $('script').first().replaceWith('<br>');
+      // fs.writeFile(pageName, $.html(), 'utf8', function (err, data) {
       //   if (err) return console.log(err);
       // });
       resolve(character);
@@ -135,6 +136,7 @@ function getPage (path) {
     });
   });
 }
+
 getCharacterRange(START_ID, END_ID).then((results) => {
   console.log("done");
 });
