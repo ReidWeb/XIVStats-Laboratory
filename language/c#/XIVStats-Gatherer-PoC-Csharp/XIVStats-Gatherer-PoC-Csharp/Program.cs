@@ -9,17 +9,14 @@ using HtmlAgilityPack;
 
 namespace XIVStats_Gatherer_PoC_Csharp
 {
-	
 	class Program
 	{
 		private static int START_ID = 0;
 		private static int END_ID = 100;
 		private static List<Task> tasks = new List<Task>();
-		
+
 		static void Main(string[] args)
 		{
-			
-
 			for (int i = START_ID; i <= END_ID; i++)
 			{
 				tasks.Add(ProcessCharacter(i));
@@ -51,8 +48,13 @@ namespace XIVStats_Gatherer_PoC_Csharp
 					doc.Load(stream);
 
 					HtmlNode title = doc.DocumentNode.SelectSingleNode("//head/title");
-					Console.WriteLine(id + ", " + title.InnerText.Split('|')[0]);
+//					Console.WriteLine(id + ", " + title.InnerText.Split('|')[0]);
 					return title.InnerText.Split('|')[0];
+				}
+				else if (result.StatusCode.ToString() == "429")
+				{
+					Console.WriteLine("Encountered 429 on character " + id + ", retrying");
+					return await ProcessCharacter(id);
 				}
 			}
 			catch (HttpRequestException exception)
@@ -64,7 +66,7 @@ namespace XIVStats_Gatherer_PoC_Csharp
 					return await ProcessCharacter(id);
 				}
 			}
-			
+
 			return "error";
 		}
 	}
